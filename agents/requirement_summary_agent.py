@@ -7,6 +7,8 @@ from typing import Optional
 
 from core.llm_client import LLMClient
 from prompts.summary_prompt import get_requirement_summary_prompt
+from models.requirement_context import RequirementContext
+from utils.summary_parser import SummaryParser
 
 logger = logging.getLogger(__name__)
 
@@ -24,14 +26,14 @@ class RequirementSummaryAgent:
         self._llm_client = llm_client or LLMClient()
         logger.info("RequirementSummaryAgent initialized successfully.")
 
-    def summarize(self, requirement: str) -> str:
+    def summarize(self, requirement: str) -> RequirementContext:
         """Generate a summary for the provided requirement.
 
         Args:
             requirement: The requirement text to summarize.
 
         Returns:
-            The generated summary text.
+            A :class:`RequirementContext` populated from the LLM summary.
 
         Raises:
             ValueError: If the requirement is empty or whitespace.
@@ -56,10 +58,16 @@ class RequirementSummaryAgent:
             logger.info("Sending prompt to LLM for requirement summary generation.")
             summary = self._llm_client.generate(prompt)
             logger.info(
-                "Requirement summary received successfully (response_length=%d).",
+                "Summary received from LLM (response_length=%d).",
                 len(summary),
             )
-            return summary
+
+            # Parse the LLM output into a structured RequirementContext
+            context: RequirementContext = SummaryParser.parse(summary)
+            logger.info("Summary parsed successfully.")
+            logger.info("RequirementContext created successfully.")
+
+            return context
         except Exception as exc:
             logger.exception("Unexpected error during requirement summary generation.")
             raise RuntimeError("Failed to generate requirement summary.") from exc
