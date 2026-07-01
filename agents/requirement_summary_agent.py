@@ -5,15 +5,15 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-from core.llm_client import LLMClient
-from prompts.summary_prompt import get_requirement_summary_prompt
+from agents.base_agent import BaseAgent
 from models.requirement_context import RequirementContext
+from prompts.summary_prompt import get_requirement_summary_prompt
 from utils.summary_parser import SummaryParser
 
 logger = logging.getLogger(__name__)
 
 
-class RequirementSummaryAgent:
+class RequirementSummaryAgent(BaseAgent):
     """Generate concise requirement summaries using an LLM."""
 
     def __init__(self, llm_client: Optional[LLMClient] = None) -> None:
@@ -23,8 +23,7 @@ class RequirementSummaryAgent:
             llm_client: Optional injected LLM client. If omitted, a new
                 LLMClient instance is created.
         """
-        self._llm_client = llm_client or LLMClient()
-        logger.info("RequirementSummaryAgent initialized successfully.")
+        super().__init__(llm_client=llm_client)
 
     def summarize(self, requirement: str) -> RequirementContext:
         """Generate a summary for the provided requirement.
@@ -39,10 +38,7 @@ class RequirementSummaryAgent:
             ValueError: If the requirement is empty or whitespace.
             RuntimeError: If summary generation fails.
         """
-        if not isinstance(requirement, str) or not requirement.strip():
-            logger.error("Requirement summary validation failed: input was empty.")
-            raise ValueError("Requirement must be a non-empty string.")
-
+        self._validate_input(requirement)
         logger.info(
             "Generating requirement summary for input length=%d.",
             len(requirement),
@@ -55,14 +51,12 @@ class RequirementSummaryAgent:
         )
 
         try:
-            logger.info("Sending prompt to LLM for requirement summary generation.")
-            summary = self._llm_client.generate(prompt)
+            summary = self._generate(prompt)
             logger.info(
                 "Summary received from LLM (response_length=%d).",
                 len(summary),
             )
 
-            # Parse the LLM output into a structured RequirementContext
             context: RequirementContext = SummaryParser.parse(summary)
             logger.info("Summary parsed successfully.")
             logger.info("RequirementContext created successfully.")
