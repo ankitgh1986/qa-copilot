@@ -1,0 +1,18 @@
+Requirement Specification - Customer Profile Update
+
+User Story:
+As a customer, I want to update my profile.
+
+Details:
+- User can edit profile information.
+- Name can be changed.
+- Phone number can be changed.
+- Email may be editable.
+- Save button updates the information.
+
+Missing/Unclear:
+- Validation rules
+- Mandatory fields
+- Authorization
+- Error messages
+- Success confirmation
