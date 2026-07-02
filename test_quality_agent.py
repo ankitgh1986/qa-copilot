@@ -84,7 +84,7 @@ def main() -> None:
         print("VERDICT")
         print("=" * 40)
 
-        print(assessment.verdict)
+        print(assessment.verdict.value)
 
     except Exception as exc:
         logger.exception("Quality agent execution failed.")

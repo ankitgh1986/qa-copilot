@@ -6,9 +6,9 @@ import logging
 
 from agents.base_agent import BaseAgent
 from models.quality_assessment import QualityAssessment
+from models.requirement_context import RequirementContext
 from prompts.quality_prompt import get_requirement_quality_prompt
 from utils.quality_parser import QualityParser
-from models.requirement_context import RequirementContext
 
 logger = logging.getLogger(__name__)
 
@@ -16,11 +16,14 @@ logger = logging.getLogger(__name__)
 class RequirementQualityAgent(BaseAgent):
     """Evaluate the quality of a software requirement.
 
-    This agent uses the configured LLM to assess the quality of a
-    requirement summary and returns a structured QualityAssessment object.
+    This agent evaluates the quality of a structured requirement
+    summary and returns a populated QualityAssessment object.
     """
 
-    def evaluate(self, context: RequirementContext) -> QualityAssessment:
+    def evaluate(
+        self,
+        context: RequirementContext,
+    ) -> QualityAssessment:
         """Evaluate the quality of a requirement.
 
         Args:
@@ -32,11 +35,15 @@ class RequirementQualityAgent(BaseAgent):
             A populated QualityAssessment object.
 
         Raises:
-            ValueError: If the supplied summary is empty.
-            RuntimeError: If quality assessment fails.
+            ValueError:
+                If the requirement summary is empty.
+
+            RuntimeError:
+                If quality evaluation fails.
         """
 
         summary = context.short_summary
+
         self._validate_input(summary)
 
         logger.info(
@@ -61,12 +68,17 @@ class RequirementQualityAgent(BaseAgent):
 
             assessment = QualityParser.parse(response)
 
-            logger.info("Quality assessment parsed successfully.")
+            logger.info(
+                "Quality assessment parsed successfully."
+            )
 
             return assessment
 
         except Exception as exc:
-            logger.exception("Requirement quality evaluation failed.")
+            logger.exception(
+                "Requirement quality evaluation failed."
+            )
+
             raise RuntimeError(
                 "Failed to evaluate requirement quality."
             ) from exc

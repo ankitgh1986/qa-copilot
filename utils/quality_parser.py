@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 import re
 
+from models.enums import RequirementVerdict
 from models.quality_assessment import QualityAssessment
 
 logger = logging.getLogger(__name__)
@@ -57,8 +58,11 @@ class QualityParser:
                 weaknesses=QualityParser._extract_list(
                     response, "Weaknesses", "Verdict"
                 ),
-                verdict=QualityParser._extract_text(
-                    response, "Verdict"
+                verdict=RequirementVerdict(
+                    QualityParser._extract_text(
+                        response,
+                        "Verdict",
+                    )
                 ),
             )
 
@@ -74,9 +78,7 @@ class QualityParser:
     @staticmethod
     def _extract_score(text: str, section: str) -> int:
         """Extract a numeric score from a section."""
-        pattern = (
-            rf"{re.escape(section)}\s*:?\s*(\d+)"
-        )
+        pattern = rf"{re.escape(section)}\s*:?\s*(\d+)"
 
         match = re.search(
             pattern,
@@ -92,9 +94,7 @@ class QualityParser:
     @staticmethod
     def _extract_text(text: str, section: str) -> str:
         """Extract a single-line text section."""
-        pattern = (
-            rf"{re.escape(section)}\s*:?\s*(.+)"
-        )
+        pattern = rf"{re.escape(section)}\s*:?\s*(.+)"
 
         match = re.search(
             pattern,
@@ -143,14 +143,12 @@ class QualityParser:
         items: list[str] = []
 
         for line in block.splitlines():
-
             line = line.strip()
 
             if not line:
                 continue
 
             line = re.sub(r"^[\-\*\u2022]\s*", "", line)
-
             line = re.sub(r"^\d+[.)]\s*", "", line)
 
             if line:
