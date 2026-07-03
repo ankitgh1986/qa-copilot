@@ -3,15 +3,16 @@
 from __future__ import annotations
 
 import logging
-import re
 
 from models.enums import RequirementVerdict
 from models.quality_assessment import QualityAssessment
+from utils.parser_utils import (
+    extract_list,
+    extract_score,
+    extract_text,
+)
 
 logger = logging.getLogger(__name__)
-
-
-_MISSING_TOKEN = "information not provided."
 
 
 class QualityParser:
@@ -30,131 +31,69 @@ class QualityParser:
         Raises:
             RuntimeError: If parsing fails unexpectedly.
         """
+
         logger.info("Parsing quality assessment.")
 
         try:
+
             assessment = QualityAssessment(
-                overall_score=QualityParser._extract_score(
-                    response, "Overall Score"
+                overall_score=extract_score(
+                    response,
+                    "Overall Score",
                 ),
-                completeness_score=QualityParser._extract_score(
-                    response, "Completeness Score"
+                completeness_score=extract_score(
+                    response,
+                    "Completeness Score",
                 ),
-                clarity_score=QualityParser._extract_score(
-                    response, "Clarity Score"
+                clarity_score=extract_score(
+                    response,
+                    "Clarity Score",
                 ),
-                testability_score=QualityParser._extract_score(
-                    response, "Testability Score"
+                testability_score=extract_score(
+                    response,
+                    "Testability Score",
                 ),
-                consistency_score=QualityParser._extract_score(
-                    response, "Consistency Score"
+                consistency_score=extract_score(
+                    response,
+                    "Consistency Score",
                 ),
-                risk_coverage_score=QualityParser._extract_score(
-                    response, "Risk Coverage Score"
+                risk_coverage_score=extract_score(
+                    response,
+                    "Risk Coverage Score",
                 ),
-                strengths=QualityParser._extract_list(
-                    response, "Strengths", "Weaknesses"
+                strengths=extract_list(
+                    response,
+                    "Strengths",
+                    "Weaknesses",
                 ),
-                weaknesses=QualityParser._extract_list(
-                    response, "Weaknesses", "Verdict"
+                weaknesses=extract_list(
+                    response,
+                    "Weaknesses",
+                    "Verdict",
                 ),
                 verdict=RequirementVerdict(
-                    QualityParser._extract_text(
+                    extract_text(
                         response,
                         "Verdict",
                     )
                 ),
             )
 
-            logger.info("Quality assessment parsed successfully.")
+            logger.info(
+                "Quality assessment parsed successfully."
+            )
+
             return assessment
 
         except Exception as exc:
-            logger.exception("Failed to parse quality assessment.")
+
+            logger.exception(
+                "Failed to parse quality assessment."
+            )
+
             raise RuntimeError(
                 "Failed to parse quality assessment."
             ) from exc
-
-    @staticmethod
-    def _extract_score(text: str, section: str) -> int:
-        """Extract a numeric score from a section."""
-        pattern = rf"{re.escape(section)}\s*:?\s*(\d+)"
-
-        match = re.search(
-            pattern,
-            text,
-            flags=re.IGNORECASE,
-        )
-
-        if match:
-            return int(match.group(1))
-
-        return 0
-
-    @staticmethod
-    def _extract_text(text: str, section: str) -> str:
-        """Extract a single-line text section."""
-        pattern = rf"{re.escape(section)}\s*:?\s*(.+)"
-
-        match = re.search(
-            pattern,
-            text,
-            flags=re.IGNORECASE,
-        )
-
-        if not match:
-            return ""
-
-        value = match.group(1).strip()
-
-        if value.casefold() == _MISSING_TOKEN:
-            return ""
-
-        return value
-
-    @staticmethod
-    def _extract_list(
-        text: str,
-        start_section: str,
-        end_section: str,
-    ) -> list[str]:
-        """Extract a bullet list between two sections."""
-
-        pattern = (
-            rf"{re.escape(start_section)}\s*:?"
-            rf"(.*?)"
-            rf"{re.escape(end_section)}"
-        )
-
-        match = re.search(
-            pattern,
-            text,
-            flags=re.IGNORECASE | re.DOTALL,
-        )
-
-        if not match:
-            return []
-
-        block = match.group(1).strip()
-
-        if block.casefold() == _MISSING_TOKEN:
-            return []
-
-        items: list[str] = []
-
-        for line in block.splitlines():
-            line = line.strip()
-
-            if not line:
-                continue
-
-            line = re.sub(r"^[\-\*\u2022]\s*", "", line)
-            line = re.sub(r"^\d+[.)]\s*", "", line)
-
-            if line:
-                items.append(line)
-
-        return items
 
 
 __all__ = ["QualityParser"]
