@@ -6,6 +6,7 @@ import logging
 
 from agents.requirement_quality_agent import RequirementQualityAgent
 from agents.requirement_summary_agent import RequirementSummaryAgent
+from core.context_cache import ContextCache
 from utils.file_reader import FileReader
 
 logging.basicConfig(
@@ -36,6 +37,7 @@ def main() -> None:
     """Run the Requirement Quality Agent."""
 
     try:
+
         file_path = input(
             "Enter the requirement document path: "
         ).strip()
@@ -48,13 +50,33 @@ def main() -> None:
 
         document = FileReader().read(file_path)
 
-        logger.info("Generating requirement summary.")
+        if ContextCache.exists():
 
-        summary_agent = RequirementSummaryAgent()
+            logger.info(
+                "Loading RequirementContext from cache."
+            )
 
-        context = summary_agent.summarize(document)
+            context = ContextCache.load()
 
-        logger.info("Evaluating requirement quality.")
+        else:
+
+            logger.info(
+                "Generating RequirementContext."
+            )
+
+            summary_agent = RequirementSummaryAgent()
+
+            context = summary_agent.summarize(
+                document
+            )
+
+            ContextCache.save(
+                context
+            )
+
+        logger.info(
+            "Evaluating requirement quality."
+        )
 
         quality_agent = RequirementQualityAgent()
 
@@ -67,27 +89,62 @@ def main() -> None:
         print("QUALITY ASSESSMENT")
         print("=" * 50)
 
-        print(f"Overall Score       : {assessment.overall_score}")
-        print(f"Completeness Score  : {assessment.completeness_score}")
-        print(f"Clarity Score       : {assessment.clarity_score}")
-        print(f"Testability Score   : {assessment.testability_score}")
-        print(f"Consistency Score   : {assessment.consistency_score}")
-        print(f"Risk Coverage Score : {assessment.risk_coverage_score}")
+        print(
+            f"Overall Score       : "
+            f"{assessment.overall_score}"
+        )
+
+        print(
+            f"Completeness Score  : "
+            f"{assessment.completeness_score}"
+        )
+
+        print(
+            f"Clarity Score       : "
+            f"{assessment.clarity_score}"
+        )
+
+        print(
+            f"Testability Score   : "
+            f"{assessment.testability_score}"
+        )
+
+        print(
+            f"Consistency Score   : "
+            f"{assessment.consistency_score}"
+        )
+
+        print(
+            f"Risk Coverage Score : "
+            f"{assessment.risk_coverage_score}"
+        )
 
         print()
 
-        _print_list("STRENGTHS", assessment.strengths)
+        _print_list(
+            "STRENGTHS",
+            assessment.strengths,
+        )
 
-        _print_list("WEAKNESSES", assessment.weaknesses)
+        _print_list(
+            "WEAKNESSES",
+            assessment.weaknesses,
+        )
 
         print("=" * 40)
         print("VERDICT")
         print("=" * 40)
 
-        print(assessment.verdict.value)
+        print(
+            assessment.verdict.value
+        )
 
     except Exception as exc:
-        logger.exception("Quality agent execution failed.")
+
+        logger.exception(
+            "Quality agent execution failed."
+        )
+
         print(f"\nError: {exc}")
 
 

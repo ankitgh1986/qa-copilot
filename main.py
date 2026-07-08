@@ -4,58 +4,90 @@ from __future__ import annotations
 
 import logging
 
-from agents.requirement_reviewer import RequirementReviewer
-from utils.file_reader import FileReader
+from core.requirement_analyzer import RequirementAnalyzer
+from formatters.console_report_formatter import (
+    ConsoleReportFormatter,
+)
 
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s - %(levelname)s - %(name)s - %(message)s",
 )
+
 logger = logging.getLogger(__name__)
 
 
 def main() -> None:
-    """Run the QA Copilot workflow for reviewing a requirement document."""
-    print("=========================================")
-    print("QA COPILOT v1.0")
+    """Run the QA Copilot application."""
+
+    print("=" * 50)
+    print("QA COPILOT")
     print("AI Assistant for Software Test Engineers")
-    print("=========================================")
+    print("=" * 50)
 
-    logger.info("QA Copilot application started.")
+    logger.info(
+        "QA Copilot application started."
+    )
 
-    file_path = input("Enter the requirement document path: ").strip()
-    if not file_path:
-        logger.warning("No file path provided by the user.")
-        print("No file path provided. Exiting.")
+    document_path = input(
+        "Enter the requirement document path: "
+    ).strip()
+
+    if not document_path:
+
+        logger.warning(
+            "No document path provided."
+        )
+
+        print(
+            "No document path provided."
+        )
+
         return
 
     try:
-        logger.info("Initializing file reader and reviewer.")
-        file_reader = FileReader()
-        reviewer = RequirementReviewer()
 
-        print("\nReading document...")
-        requirement_text = file_reader.read(file_path)
+        analyzer = RequirementAnalyzer()
 
-        print("\nGenerating AI review...")
-        review = reviewer.review(requirement_text)
+        result = analyzer.analyze(
+            document_path
+        )
 
-        print("\nReview completed successfully.")
-        print("\nGenerated Review:\n")
-        print(review)
+        formatter = ConsoleReportFormatter()
+
+        formatter.format(result)
 
     except FileNotFoundError as exc:
-        logger.exception("File could not be found.")
-        print(f"Error: {exc}")
+
+        logger.exception(
+            "Requirement document not found."
+        )
+
+        print(f"\nError: {exc}")
+
     except ValueError as exc:
-        logger.exception("Invalid input provided.")
-        print(f"Error: {exc}")
+
+        logger.exception(
+            "Invalid input."
+        )
+
+        print(f"\nError: {exc}")
+
     except RuntimeError as exc:
-        logger.exception("Runtime error while processing the requirement.")
-        print(f"Error: {exc}")
+
+        logger.exception(
+            "Requirement analysis failed."
+        )
+
+        print(f"\nError: {exc}")
+
     except Exception as exc:
-        logger.exception("Unexpected error occurred.")
-        print(f"Unexpected error: {exc}")
+
+        logger.exception(
+            "Unexpected application error."
+        )
+
+        print(f"\nUnexpected Error: {exc}")
 
 
 if __name__ == "__main__":
