@@ -32,15 +32,29 @@ class ConsoleReportFormatter:
 
             self._print_header()
 
-            self._print_requirement_summary(result)
+            self._print_requirement_summary(
+                result
+            )
 
-            self._print_quality(result)
+            self._print_quality(
+                result
+            )
 
-            self._print_ambiguity(result)
+            self._print_ambiguity(
+                result
+            )
 
-            self._print_improvement(result)
+            self._print_improvement(
+                result
+            )
 
-            self._print_risk(result)
+            self._print_risk(
+                result
+            )
+
+            self._print_acceptance_criteria(
+                result
+            )
 
             logger.info(
                 "Console report generated successfully."
@@ -59,9 +73,15 @@ class ConsoleReportFormatter:
         """Print report header."""
 
         print()
-        print(ConsoleReportFormatter.MAIN_SEPARATOR)
-        print("QA COPILOT REQUIREMENT ANALYSIS")
-        print(ConsoleReportFormatter.MAIN_SEPARATOR)
+        print(
+            ConsoleReportFormatter.MAIN_SEPARATOR
+        )
+        print(
+            "QA COPILOT REQUIREMENT ANALYSIS"
+        )
+        print(
+            ConsoleReportFormatter.MAIN_SEPARATOR
+        )
         print()
 
     @staticmethod
@@ -70,9 +90,13 @@ class ConsoleReportFormatter:
     ) -> None:
         """Print a section heading."""
 
-        print(ConsoleReportFormatter.SECTION_SEPARATOR)
+        print(
+            ConsoleReportFormatter.SECTION_SEPARATOR
+        )
         print(title)
-        print(ConsoleReportFormatter.SECTION_SEPARATOR)
+        print(
+            ConsoleReportFormatter.SECTION_SEPARATOR
+        )
 
     @staticmethod
     def _print_list(
@@ -84,7 +108,9 @@ class ConsoleReportFormatter:
 
         if not items:
 
-            print("Information not provided.")
+            print(
+                "Information not provided."
+            )
             print()
 
             return
@@ -174,9 +200,11 @@ class ConsoleReportFormatter:
             "VERDICT"
         )
 
-        print(qa.verdict.value)
-        print()
+        print(
+            qa.verdict.value
+        )
 
+        print()
     def _print_ambiguity(
         self,
         result: RequirementAnalysisResult,
@@ -195,10 +223,15 @@ class ConsoleReportFormatter:
 
         level = aa.ambiguity_level
 
-        if hasattr(level, "value"):
+        if hasattr(
+            level,
+            "value",
+        ):
             level = level.value
 
-        print(f"Ambiguity Level : {level}")
+        print(
+            f"Ambiguity Level : {level}"
+        )
 
         print()
 
@@ -360,7 +393,44 @@ class ConsoleReportFormatter:
 
         print()
 
+    def _print_acceptance_criteria(
+        self,
+        result: RequirementAnalysisResult,
+    ) -> None:
+        """Print generated acceptance criteria."""
+
+        ac = result.acceptance_criteria
+
+        self._print_section(
+            "ACCEPTANCE CRITERIA"
+        )
+
+        if not ac.criteria:
+
+            print(
+                "Information not provided."
+            )
+
+            print()
+
+            return
+
+        for index, criterion in enumerate(
+            ac.criteria,
+            start=1,
+        ):
+
+            print(
+                f"AC-{index:03d}"
+            )
+
+            print(
+                criterion
+            )
+
+            print()
+
 
 __all__ = [
     "ConsoleReportFormatter",
-]
+]    
