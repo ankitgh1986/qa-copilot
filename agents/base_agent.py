@@ -6,7 +6,8 @@ import logging
 from abc import ABC
 from typing import Optional
 
-from core.llm_client import LLMClient
+from providers.llm.base_provider import BaseLLMProvider
+from providers.llm.gemini_provider import GeminiProvider
 
 logger = logging.getLogger(__name__)
 
@@ -19,15 +20,22 @@ class BaseAgent(ABC):
     inherit from this class and implement their own business logic.
     """
 
-    def __init__(self, llm_client: Optional[LLMClient] = None) -> None:
+    def __init__(
+        self,
+        llm_client: Optional[BaseLLMProvider] = None,
+    ) -> None:
         """Initialize the base agent.
 
         Args:
-            llm_client: Optional injected LLM client. If omitted,
-                a new LLMClient instance is created.
+            llm_client: Optional injected LLM provider. If omitted,
+                a new GeminiProvider instance is created.
         """
-        self._llm_client = llm_client or LLMClient()
-        logger.info("%s initialized successfully.", self.__class__.__name__)
+        self._llm_client = llm_client or GeminiProvider()
+
+        logger.info(
+            "%s initialized successfully.",
+            self.__class__.__name__,
+        )
 
     def _validate_input(self, text: str) -> None:
         """Validate that the supplied input is a non-empty string.

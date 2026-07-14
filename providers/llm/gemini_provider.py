@@ -8,11 +8,12 @@ from typing import Optional
 import google.generativeai as genai
 
 from config.settings import GEMINI_API_KEY, MODEL_NAME, TEMPERATURE
+from providers.llm.base_provider import BaseLLMProvider
 
 logger = logging.getLogger(__name__)
 
 
-class LLMClient:
+class GeminiProvider(BaseLLMProvider):
     """Reusable wrapper around Google's Gemini API."""
 
     def __init__(
@@ -146,4 +147,4 @@ class LLMClient:
             ) from exc
 
 
-__all__ = ["LLMClient"]
+__all__ = ["GeminiProvider"]

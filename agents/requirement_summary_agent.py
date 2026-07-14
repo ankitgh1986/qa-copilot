@@ -6,6 +6,7 @@ import logging
 from typing import Optional
 
 from agents.base_agent import BaseAgent
+from providers.llm.base_provider import BaseLLMProvider
 from models.requirement_context import RequirementContext
 from prompts.summary_prompt import get_requirement_summary_prompt
 from utils.summary_parser import SummaryParser
@@ -16,12 +17,12 @@ logger = logging.getLogger(__name__)
 class RequirementSummaryAgent(BaseAgent):
     """Generate concise requirement summaries using an LLM."""
 
-    def __init__(self, llm_client: Optional[LLMClient] = None) -> None:
+    def __init__(self, llm_client: Optional[BaseLLMProvider] = None) -> None:
         """Initialize the summary agent.
 
         Args:
             llm_client: Optional injected LLM client. If omitted, a new
-                LLMClient instance is created.
+                Default LLM provider is created.
         """
         super().__init__(llm_client=llm_client)
 

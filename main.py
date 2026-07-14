@@ -8,6 +8,9 @@ from core.requirement_analyzer import RequirementAnalyzer
 from formatters.console_report_formatter import (
     ConsoleReportFormatter,
 )
+from formatters.excel_report_formatter import (
+    ExcelReportFormatter,
+)
 
 logging.basicConfig(
     level=logging.INFO,
@@ -56,6 +59,22 @@ def main() -> None:
         formatter = ConsoleReportFormatter()
 
         formatter.format(result)
+
+        excel_formatter = ExcelReportFormatter()
+
+        excel_formatter.format(
+            result = result,
+            output_path = "sample_outputs/QA_COPILOT_Report.xlsx"
+        )
+        print()
+
+        print(
+            "Excel report saved to:"
+        )
+
+        print(
+            "sample_outputs/QA_COPILOT_Report.xlsx"
+        )
 
     except FileNotFoundError as exc:
 
