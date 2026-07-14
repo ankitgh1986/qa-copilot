@@ -8,6 +8,7 @@ from typing import Optional
 import google.generativeai as genai
 
 from config.settings import GEMINI_API_KEY, MODEL_NAME, TEMPERATURE
+from core.cache.llm_cache import LLMCache
 from providers.llm.base_provider import BaseLLMProvider
 
 logger = logging.getLogger(__name__)
@@ -36,72 +37,97 @@ class GeminiProvider(BaseLLMProvider):
         """
 
         self.api_key = api_key or GEMINI_API_KEY
-        self.model_name = model_name or MODEL_NAME or "gemini-2.5-flash"
+
+        self.model_name = (
+            model_name
+            or MODEL_NAME
+            or "gemini-2.5-flash"
+        )
+
         self.temperature = (
-            temperature if temperature is not None else TEMPERATURE
+            temperature
+            if temperature is not None
+            else TEMPERATURE
         )
 
         logger.info(
-            "Initializing LLM client for model '%s'.",
+            "Initializing Gemini model '%s'.",
             self.model_name,
         )
 
         if not self.api_key:
-            logger.error(
-                "Missing API key while initializing LLM client."
+            raise ValueError(
+                "GEMINI_API_KEY is not configured."
             )
-            raise ValueError("GEMINI_API_KEY is not configured.")
 
         try:
-            genai.configure(api_key=self.api_key)
-            logger.info("Gemini API configured successfully.")
+
+            genai.configure(
+                api_key=self.api_key,
+            )
 
             self._model = genai.GenerativeModel(
-                model_name=self.model_name
+                model_name=self.model_name,
             )
 
             logger.info(
-                "Gemini model '%s' initialized successfully.",
-                self.model_name,
+                "Gemini model initialized successfully."
             )
 
         except Exception as exc:
+
             logger.exception(
-                "Failed to initialize Gemini model '%s'.",
-                self.model_name,
+                "Failed to initialize Gemini."
             )
+
             raise RuntimeError(
-                f"Failed to initialize Gemini model '{self.model_name}'."
+                "Failed to initialize Gemini."
             ) from exc
 
-    def generate(self, prompt: str) -> str:
+    def generate(
+        self,
+        prompt: str,
+    ) -> str:
         """
-        Generate a response from Gemini.
+        Generate response from Gemini.
 
-        Args:
-            prompt: Prompt to send to Gemini.
-
-        Returns:
-            Generated text response.
-
-        Raises:
-            ValueError: If the prompt is empty.
-            RuntimeError: If Gemini generation fails.
+        Uses a local cache to avoid repeated API
+        calls for identical prompts.
         """
 
-        if not isinstance(prompt, str) or not prompt.strip():
-            logger.error(
-                "Prompt validation failed. Prompt must be a non-empty string."
+        if (
+            not isinstance(prompt, str)
+            or not prompt.strip()
+        ):
+            raise ValueError(
+                "Prompt must be a non-empty string."
             )
-            raise ValueError("Prompt must be a non-empty string.")
+
+        # ----------------------------------
+        # Check Cache
+        # ----------------------------------
+
+        cached = LLMCache.get(prompt)
+
+        if cached is not None:
+
+            logger.info(
+                "LLM Cache HIT."
+            )
+
+            return cached
 
         logger.info(
-            "Sending prompt to Gemini (model='%s', length=%d).",
+            "LLM Cache MISS."
+        )
+
+        logger.info(
+            "Calling Gemini (model=%s)...",
             self.model_name,
-            len(prompt),
         )
 
         try:
+
             response = self._model.generate_content(
                 prompt,
                 generation_config={
@@ -109,42 +135,40 @@ class GeminiProvider(BaseLLMProvider):
                 },
             )
 
-        except Exception as exc:
-            logger.exception(
-                "Gemini generation failed for model '%s'.",
-                self.model_name,
-            )
-            raise RuntimeError(
-                f"Failed to generate content from Gemini: {exc}"
-            ) from exc
-
-        try:
             response_text = response.text.strip()
 
             if not response_text:
-                logger.error(
-                    "Gemini returned an empty response for model '%s'.",
-                    self.model_name,
-                )
+
                 raise RuntimeError(
-                    "Gemini returned no usable text content."
+                    "Gemini returned empty response."
                 )
 
+            # -------------------------------
+            # Save response into cache
+            # -------------------------------
+
+            LLMCache.put(
+                prompt,
+                response_text,
+            )
+
             logger.info(
-                "Received Gemini response successfully (length=%d).",
-                len(response_text),
+                "Response cached successfully."
             )
 
             return response_text
 
         except Exception as exc:
+
             logger.exception(
-                "Failed to parse Gemini response for model '%s'.",
-                self.model_name,
+                "Gemini request failed."
             )
+
             raise RuntimeError(
-                "Gemini returned no usable text content."
+                f"Failed to generate content from Gemini: {exc}"
             ) from exc
 
 
-__all__ = ["GeminiProvider"]
+__all__ = [
+    "GeminiProvider",
+]
