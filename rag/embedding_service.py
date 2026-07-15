@@ -40,6 +40,30 @@ class EmbeddingService:
             "EmbeddingService initialized."
         )
 
+    def generate_query_embedding(
+        self,
+        query: str,
+    ) -> List[float]:
+        """
+        Generate an embedding for a user query.
+
+        Args:
+            query:
+                User search query.
+
+        Returns:
+            Query embedding vector.
+        """
+
+        if not query.strip():
+            raise ValueError(
+                "Query cannot be empty."
+            )
+
+        return self._provider.generate_embedding(
+            query
+        )
+
     def generate_embeddings(
         self,
         chunks: List[str],

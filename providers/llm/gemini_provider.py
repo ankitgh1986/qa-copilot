@@ -5,9 +5,13 @@ from __future__ import annotations
 import logging
 from typing import Optional
 
-import google.generativeai as genai
+from google import genai
 
-from config.settings import GEMINI_API_KEY, MODEL_NAME, TEMPERATURE
+from config.settings import (
+    GEMINI_API_KEY,
+    MODEL_NAME,
+    TEMPERATURE,
+)
 from core.cache.llm_cache import LLMCache
 from providers.llm.base_provider import BaseLLMProvider
 
@@ -27,13 +31,14 @@ class GeminiProvider(BaseLLMProvider):
         Initialize the Gemini client.
 
         Args:
-            api_key: Optional API key override.
-            model_name: Optional model name override.
-            temperature: Optional temperature override.
+            api_key:
+                Optional API key override.
 
-        Raises:
-            ValueError: If the API key is missing.
-            RuntimeError: If Gemini initialization fails.
+            model_name:
+                Optional model name override.
+
+            temperature:
+                Optional temperature override.
         """
 
         self.api_key = api_key or GEMINI_API_KEY
@@ -62,16 +67,12 @@ class GeminiProvider(BaseLLMProvider):
 
         try:
 
-            genai.configure(
+            self._client = genai.Client(
                 api_key=self.api_key,
             )
 
-            self._model = genai.GenerativeModel(
-                model_name=self.model_name,
-            )
-
             logger.info(
-                "Gemini model initialized successfully."
+                "Gemini client initialized successfully."
             )
 
         except Exception as exc:
@@ -103,10 +104,6 @@ class GeminiProvider(BaseLLMProvider):
                 "Prompt must be a non-empty string."
             )
 
-        # ----------------------------------
-        # Check Cache
-        # ----------------------------------
-
         cached = LLMCache.get(prompt)
 
         if cached is not None:
@@ -128,24 +125,25 @@ class GeminiProvider(BaseLLMProvider):
 
         try:
 
-            response = self._model.generate_content(
-                prompt,
-                generation_config={
-                    "temperature": self.temperature,
-                },
+            response = (
+                self._client.models.generate_content(
+                    model=self.model_name,
+                    contents=prompt,
+                    config={
+                        "temperature": self.temperature,
+                    },
+                )
             )
 
-            response_text = response.text.strip()
+            response_text = (
+                response.text.strip()
+            )
 
             if not response_text:
 
                 raise RuntimeError(
                     "Gemini returned empty response."
                 )
-
-            # -------------------------------
-            # Save response into cache
-            # -------------------------------
 
             LLMCache.put(
                 prompt,
