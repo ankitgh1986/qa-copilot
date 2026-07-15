@@ -34,3 +34,9 @@ OUTPUT_DIR = "output"
 REPORT_DIR = "output/reports"
 
 LOG_DIR = "output/logs"
+
+
+# RAG Configuration
+
+CHUNK_SIZE = 1000
+CHUNK_OVERLAP = 200
