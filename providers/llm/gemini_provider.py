@@ -6,6 +6,12 @@ import logging
 from typing import Optional
 
 from google import genai
+from tenacity import (
+    retry,
+    retry_if_exception_type,
+    stop_after_attempt,
+    wait_exponential,
+)
 
 from config.settings import (
     GEMINI_API_KEY,
@@ -27,19 +33,7 @@ class GeminiProvider(BaseLLMProvider):
         model_name: Optional[str] = None,
         temperature: Optional[float] = None,
     ) -> None:
-        """
-        Initialize the Gemini client.
-
-        Args:
-            api_key:
-                Optional API key override.
-
-            model_name:
-                Optional model name override.
-
-            temperature:
-                Optional temperature override.
-        """
+        """Initialize Gemini client."""
 
         self.api_key = api_key or GEMINI_API_KEY
 
@@ -85,6 +79,37 @@ class GeminiProvider(BaseLLMProvider):
                 "Failed to initialize Gemini."
             ) from exc
 
+    @retry(
+        retry=retry_if_exception_type(Exception),
+        wait=wait_exponential(
+            multiplier=2,
+            min=2,
+            max=20,
+        ),
+        stop=stop_after_attempt(5),
+        reraise=True,
+    )
+    def _call_gemini(
+        self,
+        prompt: str,
+    ):
+        """
+        Internal Gemini API call with retry.
+        """
+
+        logger.info(
+            "Calling Gemini (model=%s)...",
+            self.model_name,
+        )
+
+        return self._client.models.generate_content(
+            model=self.model_name,
+            contents=prompt,
+            config={
+                "temperature": self.temperature,
+            },
+        )
+
     def generate(
         self,
         prompt: str,
@@ -92,8 +117,7 @@ class GeminiProvider(BaseLLMProvider):
         """
         Generate response from Gemini.
 
-        Uses a local cache to avoid repeated API
-        calls for identical prompts.
+        Uses local cache to avoid repeated API calls.
         """
 
         if (
@@ -118,21 +142,10 @@ class GeminiProvider(BaseLLMProvider):
             "LLM Cache MISS."
         )
 
-        logger.info(
-            "Calling Gemini (model=%s)...",
-            self.model_name,
-        )
-
         try:
 
-            response = (
-                self._client.models.generate_content(
-                    model=self.model_name,
-                    contents=prompt,
-                    config={
-                        "temperature": self.temperature,
-                    },
-                )
+            response = self._call_gemini(
+                prompt
             )
 
             response_text = (
