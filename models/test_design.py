@@ -7,6 +7,30 @@ from typing import List
 
 
 @dataclass(slots=True)
+class Risk:
+    """Represents an identified project or product risk."""
+
+    risk: str = ""
+
+    category: str = ""
+
+    impact: str = ""
+
+
+@dataclass(slots=True)
+class AutomationCandidates:
+    """Represents automation opportunities by testing layer."""
+
+    api_automation: List[str] = field(default_factory=list)
+
+    ui_automation: List[str] = field(default_factory=list)
+
+    performance_automation: List[str] = field(default_factory=list)
+
+    manual_exploratory: List[str] = field(default_factory=list)
+
+
+@dataclass(slots=True)
 class TestDesign:
     """
     Represents the complete QA reasoning for a software
@@ -44,7 +68,7 @@ class TestDesign:
 
     quality_attributes: List[str] = field(default_factory=list)
 
-    identified_risks: List[str] = field(default_factory=list)
+    identified_risks: List[Risk] = field(default_factory=list)
 
     functional_areas: List[str] = field(default_factory=list)
 
@@ -58,11 +82,15 @@ class TestDesign:
     # Automation Strategy
     # ======================================================
 
-    automation_candidates: List[str] = field(default_factory=list)
+    automation_candidates: AutomationCandidates = field(
+        default_factory=AutomationCandidates
+    )
 
     automation_strategy: List[str] = field(default_factory=list)
 
 
 __all__ = [
+    "Risk",
+    "AutomationCandidates",
     "TestDesign",
 ]

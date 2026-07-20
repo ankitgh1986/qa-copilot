@@ -1,33 +1,28 @@
-"""Standalone test for TestDesignAgent."""
+"""Integration test for TestDesignAgent."""
 
 from __future__ import annotations
 
 from agents.test_design_agent import TestDesignAgent
+from providers.llm.gemini_provider import GeminiProvider
+from utils.file_reader import FileReader
 
 
-def main() -> None:
-    """Run Test Design Agent test."""
+def test_test_design_agent() -> None:
+    """Verify that TestDesignAgent generates a valid TestDesign."""
 
-    requirement = """
-Feature: Internal Fund Transfer
+    # Read requirement document
+    reader = FileReader()
+    requirement = reader.read("sample_inputs/bank_transfer_requirement.docx")
 
-Business Requirement:
-A customer should be able to transfer funds between
-their own accounts after successful authentication.
+    assert requirement.strip(), "Requirement file is empty."
 
-Business Rules:
-1. Transfer amount must be greater than zero.
-2. Source and destination accounts cannot be the same.
-3. Daily transfer limit is ₹1,00,000.
-4. OTP verification is mandatory.
-5. Transfer should fail if balance is insufficient.
-"""
-
+    # Initialize AI components
     agent = TestDesignAgent()
 
+    # Generate test design
     design = agent.analyze(requirement)
 
-    print("\n" + "=" * 80)
+    print("=" * 80)
     print("AI TEST DESIGN")
     print("=" * 80)
 
@@ -63,39 +58,52 @@ Business Rules:
     print("\nIdentified Risks")
     print("-" * 80)
     for risk in design.identified_risks:
-        print(f"Risk      : {risk.get('risk')}")
-        print(f"Category  : {risk.get('category')}")
-        print(f"Impact    : {risk.get('impact')}")
+        print(f"Risk      : {risk.risk}")
+        print(f"Category  : {risk.category}")
+        print(f"Impact    : {risk.impact}")
         print()
 
     print("\nAutomation Candidates")
     print("-" * 80)
-    for candidate in design.automation_candidates:
-        print(f"- {candidate}")
+
+    print(
+        f"- API Automation Candidates: "
+        f"{', '.join(design.automation_candidates.api_automation)}"
+    )
+    print(
+        f"- UI Automation Candidates: "
+        f"{', '.join(design.automation_candidates.ui_automation)}"
+    )
+    print(
+        f"- Performance Automation Candidates: "
+        f"{', '.join(design.automation_candidates.performance_automation)}"
+    )
+    print(
+        f"- Manual Exploratory Areas: "
+        f"{', '.join(design.automation_candidates.manual_exploratory)}"
+    )
 
     print("\nAutomation Strategy")
     print("-" * 80)
     for strategy in design.automation_strategy:
         print(f"- {strategy}")
 
-    #
-    # Basic validation
-    #
+    # Assertions
     assert design.domain
     assert design.feature_name
     assert design.business_goal
-
-    assert len(design.actors) > 0
-    assert len(design.business_rules) > 0
-    assert len(design.test_objectives) > 0
-    assert len(design.quality_attributes) > 0
-    assert len(design.identified_risks) > 0
-    assert len(design.automation_candidates) > 0
-    assert len(design.automation_strategy) > 0
+    assert design.actors
+    assert design.business_workflow
+    assert design.business_rules
+    assert design.test_objectives
+    assert design.quality_attributes
+    assert design.identified_risks
+    assert design.automation_candidates
+    assert design.automation_strategy
 
     print("\n✅ All TestDesignAgent assertions passed.")
     print("=" * 80)
 
 
 if __name__ == "__main__":
-    main()
+    test_test_design_agent()

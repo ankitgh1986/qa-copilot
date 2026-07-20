@@ -39,33 +39,24 @@ Perform complete QA reasoning for the supplied requirement.
 Your output will become the foundation for
 
 • Test Case Generation
-
 • Test Data Generation
-
 • API Test Generation
-
 • Automation Generation
-
 • Requirement Traceability
-
 • Release Risk Analysis
 
-Therefore think carefully before answering.
+Think carefully before answering.
 
 ============================================================
-STEP 1 - Understand the Requirement
+STEP 1 - Requirement Understanding
 ============================================================
 
 Identify
 
 • Business Domain
-
 • Feature Name
-
 • Business Goal
-
 • Primary Actors
-
 • Business Workflow
 
 ============================================================
@@ -75,16 +66,11 @@ STEP 2 - Requirement Analysis
 Identify
 
 • Business Rules
-
-• Constraints
-
-• Validations
-
 • Dependencies
-
 • Integration Points
+• Assumptions
 
-Do NOT invent functionality.
+Do not invent functionality.
 
 ============================================================
 STEP 3 - QA Objectives
@@ -93,165 +79,86 @@ STEP 3 - QA Objectives
 Determine
 
 • What should be verified?
-
 • What should be protected?
-
 • What should be validated?
-
-Produce concise QA objectives.
 
 ============================================================
 STEP 4 - Quality Analysis
 ============================================================
 
-Identify important Quality Attributes.
+Identify only applicable quality attributes.
 
 Examples
 
 • Security
-
 • Performance
-
 • Reliability
-
 • Availability
-
 • Scalability
-
 • Recoverability
-
 • Auditability
-
 • Maintainability
-
-Include only applicable attributes.
 
 ============================================================
 STEP 5 - Risk Analysis
 ============================================================
 
-Identify
+Identify important risks.
 
-Functional Risks
+For every risk provide
 
-Security Risks
-
-Performance Risks
-
-Reliability Risks
-
-Data Integrity Risks
-
-Usability Risks
-
-For every risk identify
-
+• Risk
+• Category
 • Impact
-
-• Recommended Testing Approach
+• Recommended Testing
 
 ============================================================
 STEP 6 - Functional Decomposition
 ============================================================
 
-Break the requirement into logical
-functional areas.
+Break the feature into logical functional areas.
 
 ============================================================
 STEP 7 - Test Strategy
 ============================================================
 
-Determine applicable testing techniques.
-
-Examples
-
-• Functional Testing
-
-• Negative Testing
-
-• Boundary Value Analysis
-
-• Equivalence Partitioning
-
-• API Testing
-
-• UI Testing
-
-• Security Testing
-
-• Performance Testing
-
-• Accessibility Testing
-
-• Compatibility Testing
-
-• Exploratory Testing
-
-Only include applicable techniques.
+Recommend applicable testing techniques.
 
 ============================================================
 STEP 8 - Coverage Strategy
 ============================================================
 
-Recommend coverage for
+Provide coverage recommendations for
 
 • Happy Path
-
 • Alternate Flow
-
 • Exception Flow
-
 • Recovery
-
 • Boundary Conditions
-
 • Invalid Data
-
 • Security Validation
-
 • Integration Validation
 
 ============================================================
 STEP 9 - Test Data Requirements
 ============================================================
 
-Identify all important test data needed.
-
-Examples
-
-• Valid Users
-
-• Invalid Users
-
-• Boundary Values
-
-• Reference Data
-
-• Master Data
-
-• Error Data
+Identify all required test data.
 
 ============================================================
-STEP 10 - Automation Strategy
+STEP 10 - Automation Analysis
 ============================================================
 
-Recommend
+Automation Candidates means WHAT should be automated.
 
-• API Automation Candidates
+Return these four lists separately.
 
-• UI Automation Candidates
-
-• Performance Automation Candidates
-
+• API Automation
+• UI Automation
+• Performance Automation
 • Manual Exploratory Areas
 
-============================================================
-STEP 11 - Assumptions
-============================================================
-
-Clearly list assumptions.
-
-Never invent business requirements.
+Automation Strategy means HOW automation should be implemented.
 
 ============================================================
 Requirement
@@ -260,12 +167,18 @@ Requirement
 {requirement}
 
 ============================================================
-Output Format
+OUTPUT
 ============================================================
 
 Return ONLY valid JSON.
 
-Use exactly this schema.
+Do NOT include markdown.
+
+Do NOT include explanations.
+
+Do NOT omit fields.
+
+Follow EXACTLY this schema.
 
 {{
     "domain": "",
@@ -306,9 +219,24 @@ Use exactly this schema.
 
     "test_data_requirements": [],
 
-    "automation_candidates": [],
+    "automation_candidates":
+    {{
+        "api_automation": [],
+        "ui_automation": [],
+        "performance_automation": [],
+        "manual_exploratory": []
+    }},
 
     "automation_strategy": []
 }}
 
+IMPORTANT
+
+automation_candidates MUST be an OBJECT.
+
+Never return it as a list.
+
+automation_strategy is a list of recommendations describing HOW automation should be implemented.
+
+Return ONLY JSON.
 """
