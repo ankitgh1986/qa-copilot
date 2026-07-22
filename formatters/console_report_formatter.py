@@ -56,6 +56,14 @@ class ConsoleReportFormatter:
                 result
             )
 
+            self._print_test_design(
+                result
+            )
+
+            self._print_test_cases(
+                result
+            )
+
             logger.info(
                 "Console report generated successfully."
             )
@@ -429,6 +437,200 @@ class ConsoleReportFormatter:
             )
 
             print()
+
+
+    def _print_test_design(
+        self,
+        result: RequirementAnalysisResult,
+    ) -> None:
+        """Print generated test design."""
+
+        td = result.test_design
+
+        self._print_section(
+            "TEST DESIGN"
+        )
+
+        fields = [
+            ("Domain", td.domain),
+            ("Feature Name", td.feature_name),
+            ("Business Goal", td.business_goal),
+            ("Business Workflow", td.business_workflow),
+            ("Coverage Strategy", td.coverage_strategy),
+            ("Automation Strategy", td.automation_strategy),
+        ]
+
+        for label, value in fields:
+            print(f"{label}:")
+            print(value if value else "Information not provided.")
+            print()
+
+        sections = [
+            ("Actors", td.actors),
+            ("Business Rules", td.business_rules),
+            ("Dependencies", td.dependencies),
+            ("Integration Points", td.integration_points),
+            ("Assumptions", td.assumptions),
+            ("Test Objectives", td.test_objectives),
+            ("Quality Attributes", td.quality_attributes),
+            ("Functional Areas", td.functional_areas),
+            ("Applicable Test Types", td.applicable_test_types),
+            ("Test Data Requirements", td.test_data_requirements),
+        ]
+
+        for title, items in sections:
+            self._print_section(title)
+            self._print_list(items)
+
+        self._print_section("IDENTIFIED RISKS")
+        if not td.identified_risks:
+            print("Information not provided.\n")
+        else:
+            for risk in td.identified_risks:
+                print(f"Risk     : {risk.risk}")
+                print(f"Category : {risk.category}")
+                print(f"Impact   : {risk.impact}")
+                print()
+
+        self._print_section("AUTOMATION CANDIDATES")
+        ac = td.automation_candidates
+
+        self._print_section("API AUTOMATION")
+        self._print_list(ac.api_automation)
+
+        self._print_section("UI AUTOMATION")
+        self._print_list(ac.ui_automation)
+
+        self._print_section("PERFORMANCE AUTOMATION")
+        self._print_list(ac.performance_automation)
+
+        self._print_section("MANUAL EXPLORATORY")
+        self._print_list(ac.manual_exploratory)
+
+
+
+    def _print_test_cases(
+        self,
+        result: RequirementAnalysisResult,
+    ) -> None:
+        """Print generated test cases."""
+
+        suite = result.test_cases
+
+        self._print_section(
+            "GENERATED TEST CASES"
+        )
+
+        print(
+            f"Feature Name     : {suite.feature_name}"
+        )
+        print(
+            f"Total Test Cases : {suite.total_test_cases}"
+        )
+        print()
+
+        if not suite.test_cases:
+            print(
+                "Information not provided."
+            )
+            print()
+            return
+
+        for test_case in suite.test_cases:
+            self._print_section(
+                test_case.test_case_id
+                or "TEST CASE"
+            )
+
+            print(
+                f"Title                : {test_case.title}"
+            )
+            print(
+                f"Objective            : {test_case.objective}"
+            )
+            print(
+                f"Module               : {test_case.module}"
+            )
+            print(
+                f"Feature              : {test_case.feature}"
+            )
+            print(
+                "Requirement Reference: "
+                f"{test_case.requirement_reference}"
+            )
+            print(
+                f"Priority             : {test_case.priority}"
+            )
+            print(
+                f"Severity             : {test_case.severity}"
+            )
+            print(
+                f"Risk                 : {test_case.risk}"
+            )
+            print(
+                f"Test Type            : {test_case.test_type}"
+            )
+            print(
+                f"Execution Type       : {test_case.execution_type}"
+            )
+            print(
+                "Automation Candidate : "
+                f"{test_case.automation_candidate}"
+            )
+            print(
+                "Automation Layer     : "
+                f"{test_case.automation_layer}"
+            )
+            print()
+
+            print("Acceptance Criteria References:")
+            self._print_list(
+                test_case.acceptance_criteria_reference
+            )
+
+            print("Business Rule References:")
+            self._print_list(
+                test_case.business_rule_reference
+            )
+
+            print("Preconditions:")
+            self._print_list(
+                test_case.preconditions
+            )
+
+            print("Test Data:")
+            self._print_list(
+                test_case.test_data
+            )
+
+            print("Test Steps:")
+
+            if not test_case.test_steps:
+                print(
+                    "Information not provided."
+                )
+                print()
+            else:
+                for step in test_case.test_steps:
+                    print(
+                        f"{step.step_number}. "
+                        f"{step.action}"
+                    )
+                    print(
+                        "   Expected Result: "
+                        f"{step.expected_result}"
+                    )
+                print()
+
+            print("Postconditions:")
+            self._print_list(
+                test_case.postconditions
+            )
+
+            print("Tags:")
+            self._print_list(
+                test_case.tags
+            )
 
 
 __all__ = [

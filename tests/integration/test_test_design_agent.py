@@ -12,7 +12,7 @@ def test_test_design_agent() -> None:
 
     # Read requirement document
     reader = FileReader()
-    requirement = reader.read("sample_inputs/bank_transfer_requirement.docx")
+    requirement = reader.read("sample_inputs/place_order_requirement.docx")
 
     assert requirement.strip(), "Requirement file is empty."
 

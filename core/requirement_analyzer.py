@@ -12,6 +12,10 @@ from agents.improvement_agent import ImprovementAgent
 from agents.requirement_quality_agent import RequirementQualityAgent
 from agents.requirement_summary_agent import RequirementSummaryAgent
 from agents.risk_agent import RiskAgent
+from agents.test_design_agent import TestDesignAgent
+from agents.test_case_generation_agent import (
+    TestCaseGenerationAgent,
+)
 from core.context_cache import ContextCache
 from models.acceptance_criteria import AcceptanceCriteria
 from models.ambiguity_assessment import AmbiguityAssessment
@@ -19,6 +23,8 @@ from models.improvement_assessment import ImprovementAssessment
 from models.quality_assessment import QualityAssessment
 from models.requirement_context import RequirementContext
 from models.risk_assessment import RiskAssessment
+from models.test_design import TestDesign
+from models.test_case import TestCaseSuite
 from utils.file_reader import FileReader
 
 logger = logging.getLogger(__name__)
@@ -34,6 +40,8 @@ class RequirementAnalysisResult:
     improvement_assessment: ImprovementAssessment
     risk_assessment: RiskAssessment
     acceptance_criteria: AcceptanceCriteria
+    test_design: TestDesign
+    test_cases: TestCaseSuite
 
 
 class RequirementAnalyzer:
@@ -49,6 +57,10 @@ class RequirementAnalyzer:
         acceptance_criteria_agent: Optional[
             AcceptanceCriteriaAgent
         ] = None,
+        test_design_agent: Optional[TestDesignAgent] = None,
+        test_case_generation_agent: Optional[
+            TestCaseGenerationAgent
+        ] = None,
     ) -> None:
         """Initialize the RequirementAnalyzer service."""
 
@@ -60,6 +72,15 @@ class RequirementAnalyzer:
         self._acceptance_criteria_agent = (
             acceptance_criteria_agent
             or AcceptanceCriteriaAgent()
+        )
+        self._test_design_agent = (
+            test_design_agent
+            or TestDesignAgent()
+        )
+
+        self._test_case_generation_agent = (
+            test_case_generation_agent
+            or TestCaseGenerationAgent()
         )
 
         self._file_reader = FileReader()
@@ -130,6 +151,9 @@ class RequirementAnalyzer:
         context = self._summary_agent.summarize(
             requirement_text
         )
+
+        context.source_document = document_path
+        context.requirement_text = requirement_text
 
         ContextCache.save(
             context
@@ -208,6 +232,28 @@ class RequirementAnalyzer:
             )
         )
 
+        logger.info(
+            "Executing Test Design Agent"
+        )
+
+        test_design = self._test_design_agent.analyze(
+            context.requirement_text
+        )
+
+        context.test_design = test_design
+
+        logger.info(
+            "Executing Test Case Generation Agent"
+        )
+
+        test_cases = (
+            self._test_case_generation_agent.analyze(
+                context.requirement_text
+            )
+        )
+
+        context.test_cases = test_cases
+
         return RequirementAnalysisResult(
             context=context,
             quality_assessment=quality_assessment,
@@ -215,6 +261,8 @@ class RequirementAnalyzer:
             improvement_assessment=improvement_assessment,
             risk_assessment=risk_assessment,
             acceptance_criteria=acceptance_criteria,
+            test_design=test_design,
+            test_cases=test_cases,
         )
 
 
