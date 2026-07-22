@@ -1,88 +1,64 @@
-"""Abstract repository for managing knowledge documents."""
+"""In-memory implementation of the Knowledge Repository."""
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-
 from knowledge.knowledge_document import KnowledgeDocument
+from knowledge.repository.knowledge_repository import KnowledgeRepository
 
 
-class KnowledgeRepository(ABC):
+class InMemoryKnowledgeRepository(KnowledgeRepository):
     """
-    Defines the contract for storing and retrieving knowledge
-    documents.
+    Stores knowledge documents in memory.
 
-    Concrete implementations may store documents in memory,
-    databases, cloud storage, or vector databases.
+    This implementation is intended for development,
+    testing, and prototyping.
     """
 
-    @abstractmethod
+    def __init__(self) -> None:
+        self._documents: dict[str, KnowledgeDocument] = {}
+
     def add(self, document: KnowledgeDocument) -> None:
         """
-        Adds a knowledge document to the repository.
-
-        Args:
-            document: Knowledge document to store.
+        Adds or updates a knowledge document.
         """
+        self._documents[document.id] = document
 
-    @abstractmethod
     def get(self, document_id: str) -> KnowledgeDocument | None:
         """
-        Retrieves a document by its unique identifier.
-
-        Args:
-            document_id: Unique document identifier.
-
-        Returns:
-            The matching KnowledgeDocument if found,
-            otherwise None.
+        Retrieves a document by ID.
         """
+        return self._documents.get(document_id)
 
-    @abstractmethod
     def list(self) -> list[KnowledgeDocument]:
         """
-        Returns all stored knowledge documents.
-
-        Returns:
-            List of KnowledgeDocument objects.
+        Returns all stored documents.
         """
+        return list(self._documents.values())
 
-    @abstractmethod
     def remove(self, document_id: str) -> bool:
         """
-        Removes a document from the repository.
-
-        Args:
-            document_id: Unique document identifier.
-
-        Returns:
-            True if removed successfully,
-            otherwise False.
+        Removes a document by ID.
         """
+        if document_id not in self._documents:
+            return False
 
-    @abstractmethod
+        del self._documents[document_id]
+        return True
+
     def exists(self, document_id: str) -> bool:
         """
         Checks whether a document exists.
-
-        Args:
-            document_id: Unique document identifier.
-
-        Returns:
-            True if the document exists.
         """
+        return document_id in self._documents
 
-    @abstractmethod
     def count(self) -> int:
         """
-        Returns the total number of stored documents.
-
-        Returns:
-            Number of documents.
+        Returns the total number of documents.
         """
+        return len(self._documents)
 
-    @abstractmethod
     def clear(self) -> None:
         """
-        Removes all documents from the repository.
+        Removes all documents.
         """
+        self._documents.clear()

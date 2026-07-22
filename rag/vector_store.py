@@ -19,13 +19,33 @@ class VectorStore:
     """
 
     def __init__(self) -> None:
+        """Initialize the vector store."""
 
         self._index = None
-
         self._embeddings: List[EmbeddingVector] = []
 
         logger.info(
             "VectorStore initialized."
+        )
+
+    @property
+    def count(self) -> int:
+        """
+        Return the number of stored embeddings.
+        """
+
+        return len(self._embeddings)
+
+    def clear(self) -> None:
+        """
+        Clear the vector store.
+        """
+
+        self._index = None
+        self._embeddings.clear()
+
+        logger.info(
+            "VectorStore cleared."
         )
 
     def add(
@@ -34,6 +54,10 @@ class VectorStore:
     ) -> None:
         """
         Add embeddings to the FAISS index.
+
+        Args:
+            embeddings:
+                Embedding vectors to store.
         """
 
         if not embeddings:
@@ -41,9 +65,25 @@ class VectorStore:
                 "Embeddings cannot be empty."
             )
 
+        if any(
+            not embedding.vector
+            for embedding in embeddings
+        ):
+            raise ValueError(
+                "Embedding vectors cannot be empty."
+            )
+
         dimension = len(
             embeddings[0].vector
         )
+
+        if any(
+            len(embedding.vector) != dimension
+            for embedding in embeddings
+        ):
+            raise ValueError(
+                "All embeddings must have the same dimension."
+            )
 
         if self._index is None:
 
@@ -57,7 +97,7 @@ class VectorStore:
             )
 
         vectors = np.array(
-            [e.vector for e in embeddings],
+            [embedding.vector for embedding in embeddings],
             dtype=np.float32,
         )
 
@@ -80,13 +120,32 @@ class VectorStore:
         top_k: int = 3,
     ) -> List[EmbeddingVector]:
         """
-        Search similar embeddings.
+        Search for similar embeddings.
+
+        Args:
+            query_vector:
+                Query embedding vector.
+
+            top_k:
+                Number of results to retrieve.
+
+        Returns:
+            List of similar embedding vectors.
         """
 
         if self._index is None:
-
             raise RuntimeError(
                 "VectorStore is empty."
+            )
+
+        if not query_vector:
+            raise ValueError(
+                "Query vector cannot be empty."
+            )
+
+        if top_k <= 0:
+            raise ValueError(
+                "top_k must be greater than zero."
             )
 
         query = np.array(
@@ -99,9 +158,7 @@ class VectorStore:
             top_k,
         )
 
-        results: List[
-            EmbeddingVector
-        ] = []
+        results: List[EmbeddingVector] = []
 
         for idx in indices[0]:
 
@@ -112,7 +169,7 @@ class VectorStore:
                 )
 
         logger.info(
-            "Retrieved %d similar chunks.",
+            "Retrieved %d similar embeddings.",
             len(results),
         )
 

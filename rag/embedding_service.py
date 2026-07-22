@@ -37,7 +37,8 @@ class EmbeddingService:
         )
 
         logger.info(
-            "EmbeddingService initialized."
+            "EmbeddingService initialized using %s.",
+            self._provider.__class__.__name__,
         )
 
     def generate_query_embedding(
@@ -55,7 +56,14 @@ class EmbeddingService:
             Query embedding vector.
         """
 
-        if not query.strip():
+        if not isinstance(query, str):
+            raise TypeError(
+                "Query must be a string."
+            )
+
+        query = query.strip()
+
+        if not query:
             raise ValueError(
                 "Query cannot be empty."
             )
@@ -84,6 +92,14 @@ class EmbeddingService:
                 "Chunks cannot be empty."
             )
 
+        if any(
+            not isinstance(chunk, str) or not chunk.strip()
+            for chunk in chunks
+        ):
+            raise ValueError(
+                "Chunks cannot contain empty text."
+            )
+
         embeddings: List[EmbeddingVector] = []
 
         for index, chunk in enumerate(chunks):
@@ -94,6 +110,9 @@ class EmbeddingService:
 
             embeddings.append(
                 EmbeddingVector(
+                    # TODO:
+                    # Replace index with KnowledgeChunk.id
+                    # once KnowledgeChunkFactory is integrated.
                     chunk_id=index,
                     text=chunk,
                     vector=vector,
@@ -101,8 +120,9 @@ class EmbeddingService:
             )
 
         logger.info(
-            "Generated %d embedding vectors.",
+            "Generated %d embedding vectors using %s.",
             len(embeddings),
+            self._provider.__class__.__name__,
         )
 
         return embeddings
