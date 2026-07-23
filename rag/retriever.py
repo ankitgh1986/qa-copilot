@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Retriever:
-    """Retrieve the most relevant document chunks."""
+    """Retrieve the most relevant embeddings."""
 
     def __init__(
         self,
@@ -28,11 +28,16 @@ class Retriever:
                 Service used to generate query embeddings.
 
             vector_store:
-                Vector database.
+                Vector store used for semantic search.
         """
 
-        self._embedding_service = embedding_service
-        self._vector_store = vector_store
+        self._embedding_service = (
+            embedding_service
+        )
+
+        self._vector_store = (
+            vector_store
+        )
 
         logger.info(
             "Retriever initialized."
@@ -44,22 +49,27 @@ class Retriever:
         top_k: int = 3,
     ) -> List[EmbeddingVector]:
         """
-        Retrieve the most relevant chunks.
+        Retrieve the most relevant embeddings.
 
         Args:
             query:
                 User query.
 
             top_k:
-                Number of chunks.
+                Number of embeddings to retrieve.
 
         Returns:
-            Matching embeddings.
+            Matching embedding vectors.
         """
 
         if not query.strip():
             raise ValueError(
                 "Query cannot be empty."
+            )
+
+        if top_k <= 0:
+            raise ValueError(
+                "top_k must be greater than zero."
             )
 
         query_vector = (
@@ -69,13 +79,15 @@ class Retriever:
             )
         )
 
-        results = self._vector_store.search(
-            query_vector=query_vector,
-            top_k=top_k,
+        results = (
+            self._vector_store.search(
+                query_vector=query_vector,
+                top_k=top_k,
+            )
         )
 
         logger.info(
-            "Retrieved %d chunks.",
+            "Retrieved %d embeddings.",
             len(results),
         )
 
